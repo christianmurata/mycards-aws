@@ -1,0 +1,58 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Metadata:
+    Generator: "former2"
+Description: "Mycards AWS Infrastructure as Code"
+Resources:
+    AppSyncDataSource:
+        Type: "AWS::AppSync::DataSource"
+        Properties:
+            Name: "MyCardsDynamoDBTable"
+            Description: "Primeira fonte de dados criada com o console."
+            Type: "AMAZON_DYNAMODB"
+            ServiceRoleArn: !Sub "arn:aws:iam::${AWS::AccountId}:role/AWSGraphQLServicesRole"
+            DynamoDBConfig: 
+                TableName: !Ref DynamoDBTable
+                AwsRegion: !Ref AWS::Region
+                UseCallerCredentials: false
+                Versioned: false
+            ApiId: "f75vz3xzbnbhpgpdx4gsytrvb4"
+
+    AppSyncGraphQLApi:
+        Type: "AWS::AppSync::GraphQLApi"
+        Properties:
+            Name: "MyCardsApp"
+            AuthenticationType: "API_KEY"
+            XrayEnabled: false
+
+    DynamoDBTable:
+        Type: "AWS::DynamoDB::Table"
+        Properties:
+            AttributeDefinitions: 
+              - 
+                AttributeName: "category"
+                AttributeType: "S"
+              - 
+                AttributeName: "id"
+                AttributeType: "S"
+            BillingMode: "PAY_PER_REQUEST"
+            TableName: "MyCardsTable"
+            KeySchema: 
+              - 
+                AttributeName: "id"
+                KeyType: "HASH"
+            GlobalSecondaryIndexes: 
+              - 
+                IndexName: "category-index"
+                KeySchema: 
+                  - 
+                    AttributeName: "category"
+                    KeyType: "HASH"
+                Projection: 
+                    ProjectionType: "ALL"
+                ProvisionedThroughput: 
+                    ReadCapacityUnits: 0
+                    WriteCapacityUnits: 0
+            SSESpecification: 
+                SSEEnabled: true
+                SSEType: "KMS"
+                KMSMasterKeyId: !Sub "arn:aws:kms:${AWS::Region}:${AWS::AccountId}:key/2e0b942b-ad6c-400a-a84b-f8a09cea629d"
